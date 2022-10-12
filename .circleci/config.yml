@@ -164,10 +164,11 @@ jobs:
     resource_class: large
     steps:
       - attach_workspace:
-          at: ~/workspace
+          at: /tmp/workspace
       - run:
          name: "Debug"
          command: |
+           cd /tmp/
            ls -lah
            cd workspace
            ls -lah
