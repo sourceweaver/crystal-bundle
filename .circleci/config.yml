@@ -150,6 +150,7 @@ jobs:
          working_directory: ~/crystalline
          command: |
            mkdir bin
+           shards install
            crystal build ./src/crystalline.cr  -o ./bin/crystalline --release --no-debug --progress -Dpreview_mt
       - store_artifacts:
           path: ~/crystalline/bin/crystalline
