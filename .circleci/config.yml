@@ -129,12 +129,12 @@ jobs:
       - image: crystallang/crystal:1.6.0-alpine
     resource_class: large
     steps:
-      - run:
-          name: "Install dependencies"
-          command: |
-            apk add --update --no-cache --force-overwrite sudo make git autoconf automake libtool patch \
-              wget gcc gmp-dev libevent-static musl-dev pcre-dev libxml2-dev openssl-dev openssl-libs-static \
-              tzdata yaml-static zlib-static llvm14 llvm14-static llvm14-dev g++ libffi-dev
+      # - run:
+      #     name: "Install dependencies"
+      #     command: |
+      #       apk add --update --no-cache --force-overwrite sudo make git autoconf automake libtool patch \
+      #         wget gcc gmp-dev libevent-static musl-dev pcre-dev libxml2-dev openssl-dev openssl-libs-static \
+      #         tzdata yaml-static zlib-static llvm14 llvm14-static llvm14-dev g++ libffi-dev
       - run:
          name: "Fetch Crystalline Source Code"
          working_directory: ~/
