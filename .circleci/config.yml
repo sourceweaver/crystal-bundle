@@ -95,7 +95,7 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - ~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+            - crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
 
 
   build-shards:
@@ -150,9 +150,14 @@ jobs:
          working_directory: ~/crystalline
          no_output_timeout: 30m
          command: |
-           mkdir build
-           shards install
-           crystal build ./src/crystalline.cr  -o ./build/crystalline --release --no-debug --progress -Dpreview_mt
+           git clone -b 1.6.0 --depth=1 https://github.com/crystal-lang/crystal
+           make -C crystal llvm_ext
+           CRYSTAL_PATH=crystal/src:lib shards build crystalline --no-debug --progress --stats --production --static \
+             --release -Dpreview_mt --ignore-crystal-version
+           ls -lah
+           # mkdir build
+           # shards install
+           # crystal build ./src/crystalline.cr  -o ./build/crystalline --release --no-debug --progress -Dpreview_mt
       - store_artifacts:
           path: ~/crystalline/bin/crystalline
 
