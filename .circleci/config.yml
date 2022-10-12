@@ -94,6 +94,8 @@ jobs:
          path: ~/crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc.tar.gz
 
   build-shards:
+    environment:
+      <<: *env
     docker:
       - image: crystallang/crystal:1.6.0-alpine
     resource_class: large
@@ -112,6 +114,35 @@ jobs:
            make bin/shards release=1 static=1
       - store_artifacts:
           path: ~/shards/.build/bin/shards
+
+  build-crystalline:
+    environment:
+      <<: *env
+    docker:
+      - image: crystallang/crystal:1.6.0-alpine
+    resource_class: large
+    steps:
+      - run:
+          name: "Install dependencies"
+          command: |
+            apk add --update --no-cache --force-overwrite sudo make git autoconf automake libtool patch \
+              wget gcc gmp-dev libevent-static musl-dev pcre-dev libxml2-dev openssl-dev openssl-libs-static \
+              tzdata yaml-static zlib-static llvm14 llvm14-static llvm14-dev g++ libffi-dev
+      - run:
+         name: "Fetch Crystalline Source Code"
+         working_directory: ~/
+         command: |
+           git clone https://github.com/elbywan/crystalline
+           cd crystalline
+           git checkout v0.7.0
+      - run:
+         name: "Build Crystalline"
+         working_directory: ~/crystalline
+         command: |
+           mkdir bin
+           crystal build ./src/crystalline.cr  -o ./bin/crystalline --release --no-debug --progress -Dpreview_mt
+      - store_artifacts:
+          path: ~/crystalline/bin/crystalline
 workflows:
   build:
     jobs:
@@ -121,3 +152,4 @@ workflows:
       #     crystal_source_version: 1.6.0-1
       #     shards_source_tag: v0.17.1
       - build-shards
+      - build-crystalline
