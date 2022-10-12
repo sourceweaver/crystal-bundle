@@ -164,9 +164,9 @@ jobs:
             mkdir crystalline_artifact
             mv ~/crystalline/bin/crystalline crystalline_artifact
       - persist_to_workspace:
-        root: ~/
-        paths:
-          - crystalline_artifact
+          root: ~/
+          paths:
+            - crystalline_artifact
 
   package-bundle:
     docker:
