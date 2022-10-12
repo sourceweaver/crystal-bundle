@@ -1,0 +1,125 @@
+version: 2.1
+jobs:
+  build-crystal:
+    parameters:
+      llvm_version:
+        type: integer
+        default: 14
+      crystal_source_tag:
+        type: string
+        default: 1.6.0
+      crystal_source_version:
+        type: string
+        default: 1.6.0-1
+      shards_source_tag:
+        type: string
+        default: v0.17.1
+
+    machine:
+      image: ubuntu-2204:2022.07.1
+    resource_class: medium
+
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      CRYSTAL_COMPILER_TAG: 1.5.0
+      CRYSTAL_COMPILER_VERSION: 1.5.0-1
+      GC_VERSION: v8.2.0
+      LLVM_VERSION: << parameters.llvm_version >>
+      CRYSTAL_SOURCE_TAG: << parameters.crystal_source_tag >>
+      CRYSTAL_SOURCE_VERSION: << parameters.crystal_source_version >>
+      SHARDS_SOURCE_TAG: << parameters.shards_source_tag >>
+
+    steps:
+      - run:
+          name: "Install System Dependencies"
+          command: |
+              sudo apt-get update && sudo apt-get install build-essential software-properties-common autoconf \
+                automake libtool git pkg-config diffutils lsb-release wget libbsd-dev libedit-dev libevent-dev \
+                libgmp-dev libgmpxx4ldbl libpcre3-dev libssl-dev libxml2-dev libyaml-dev libz-dev lld libgc-dev --yes
+      - run:
+          name: "Install LLVM"
+          command: |
+            sudo add-apt-repository 'deb http://apt.llvm.org/jammy/  llvm-toolchain-jammy-$LLVM_VERSION main' --yes
+            wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+            sudo apt-get install clang-tidy-$LLVM_VERSION clang-format-$LLVM_VERSION clang-tools-$LLVM_VERSION llvm-$LLVM_VERSION-dev \
+              lld-$LLVM_VERSION lldb-$LLVM_VERSION llvm-$LLVM_VERSION-tools libomp-$LLVM_VERSION-dev libc++-$LLVM_VERSION-dev \
+              libc++abi-$LLVM_VERSION-dev libclang-common-$LLVM_VERSION-dev libclang-$LLVM_VERSION-dev libclang-cpp$LLVM_VERSION-dev \
+              libunwind-$LLVM_VERSION-dev --yes
+      - run:
+          name: "Fetch bdwgc and libatomic_ops Source Code"
+          working_directory: ~/
+          command: |
+            git clone https://github.com/ivmai/bdwgc
+            git clone https://github.com/ivmai/libatomic_ops ~/bdwgc/libatomic_ops
+      - run:
+          name: "Build and Install bdwgc"
+          working_directory: ~/bdwgc
+          command: |
+            git checkout $GC_VERSION
+            autoreconf -vif
+            ./configure --enable-static --disable-shared --disable-debug --enable-large-config CFLAGS=-DNO_GETCONTEXT
+            make -j$(nproc)
+            make check
+            sudo make install
+      - run:
+          name: "Fetch Crystal Compiler"
+          working_directory: ~/
+          command: |
+            wget https://github.com/crystal-lang/crystal/releases/download/$CRYSTAL_COMPILER_TAG/crystal-$CRYSTAL_COMPILER_VERSION-linux-x86_64.tar.gz
+            tar -xzvf crystal-$CRYSTAL_COMPILER_VERSION-linux-x86_64.tar.gz
+      - run:
+          name: "Fetch Crystal Source Code"
+          working_directory: ~/
+          command: |
+            git clone https://github.com/crystal-lang/crystal
+            cd crystal
+            git checkout $CRYSTAL_SOURCE_TAG
+      - run:
+          name: "Build Crystal"
+          working_directory: ~/crystal
+          no_output_timeout: 30m
+          command: make -j$(nproc) CRYSTAL=~/crystal-$CRYSTAL_COMPILER_VERSION/bin/crystal LLVM_CONFIG=llvm-config-$LLVM_VERSION release=true static=true
+#       - run:
+#          name: "Test Crystal"
+#          working_directory: ~/crystal
+#          command: make std_spec compiler_spec
+      - run:
+         name: "Install Crystal"
+         working_directory: ~/crystal
+         command: |
+           make install PREFIX='' DESTDIR=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+           echo 'export PATH=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin:$PATH' >> "$BASH_ENV"
+      - run:
+         name: "Fetch Shards Source Code"
+         working_directory: ~/
+         command: |
+           git clone https://github.com/crystal-lang/shards
+           cd shards
+           git checkout $SHARDS_SOURCE_TAG
+      - run:
+         name: "Build Shards"
+         working_directory: ~/shards
+         command: |
+          make bin/shards release=1 static=1
+      - run:
+         name: "Install Shards"
+         working_directory: ~/shards
+         command: |
+           make install PREFIX='' DESTDIR=".build/"
+           mv .build/bin/shards ~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin
+      - run:
+         name: "Package Crystal"
+         working_directory: ~/
+         command: |
+           tar -zcvf crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc.tar.gz crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+      - store_artifacts:
+         path: ~/crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc.tar.gz
+workflows:
+  build:
+    jobs:
+      - build-crystal:
+          llvm_version: 14
+          crystal_source_tag: 1.6.0
+          crystal_source_version: 1.6.0-1
+          shards_source_tag: v0.17.1
+
