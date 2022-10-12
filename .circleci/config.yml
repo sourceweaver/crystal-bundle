@@ -157,9 +157,16 @@ jobs:
            make -C crystal llvm_ext
            CRYSTAL_PATH=crystal/src:lib shards build crystalline --no-debug --progress --stats --production --static \
              --release -Dpreview_mt --ignore-crystal-version
-           ls -lah
-      - store_artifacts:
-          path: ~/crystalline/bin/crystalline
+      - run:
+          name: "Copy Crystalline Artifact"
+          working_directory: ~/
+          command: |
+            mkdir crystalline_artifact
+            mv ~/crystalline/bin/crystalline crystalline_artifact
+      - persist_to_workspace:
+        root: ~/
+        paths:
+          - crystalline_artifact
 
   package-bundle:
     docker:
