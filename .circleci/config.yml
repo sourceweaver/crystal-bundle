@@ -83,11 +83,10 @@ jobs:
          working_directory: ~/crystal
          command: |
            make install PREFIX='' DESTDIR=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
-           echo 'export PATH=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin:$PATH' >> "$BASH_ENV"
       - persist_to_workspace:
           root: ~/
           paths:
-            - crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+            - crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc
 
 
   build-shards:
