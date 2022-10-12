@@ -165,9 +165,11 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/workspace
-      - run: |
-         ls -lah
-         cd shards_artifact
+      - run:
+         name: "Debug"
+         command: |
+           ls -lah
+           cd shards_artifact
 
 workflows:
   build:
