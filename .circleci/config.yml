@@ -124,7 +124,7 @@ jobs:
           working_directory: ~/
           command: |
             mkdir shards_artifact
-            mv shards/.build/bin/shards shards_artifact
+            mv shards/bin/shards shards_artifact
       - persist_to_workspace:
           root: ~/
           paths:
@@ -169,7 +169,10 @@ jobs:
          name: "Debug"
          command: |
            ls -lah
+           cd workspace
+           ls -lah
            cd shards_artifact
+           ls -lah
 
 workflows:
   build:
