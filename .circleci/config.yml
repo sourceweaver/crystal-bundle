@@ -1,4 +1,11 @@
 version: 2.1
+
+defaults:
+  environment: &env
+    CRYSTAL_COMPILER_TAG: 1.6.0
+    CRYSTAL_COMPILER_VERSION: 1.6.0-1
+    GC_VERSION: v8.2.0
+
 jobs:
   build-crystal:
     parameters:
