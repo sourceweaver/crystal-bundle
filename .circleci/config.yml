@@ -18,9 +18,6 @@ jobs:
       crystal_source_version:
         type: string
         default: 1.6.0-1
-      shards_source_tag:
-        type: string
-        default: v0.17.1
 
     machine:
       image: ubuntu-2204:2022.07.1
@@ -92,13 +89,10 @@ jobs:
          command: |
            make install PREFIX='' DESTDIR=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
            echo 'export PATH=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin:$PATH' >> "$BASH_ENV"
-      - run:
-         name: "Package Crystal"
-         working_directory: ~/
-         command: |
-           tar -zcvf crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc.tar.gz crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
-      - store_artifacts:
-         path: ~/crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc.tar.gz
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ~/crystal-<< parameters.crystal_soure_version >>-llvm<< paramaters.llvm_version>>-glibc
 
   build-shards:
     environment:
@@ -172,20 +166,18 @@ jobs:
            ls -lah
            cd workspace
            ls -lah
-           cd shards_artifact
-           ls -lah
 
 workflows:
   build:
     jobs:
-      # - build-crystal:
-      #     llvm_version: 14
-      #     crystal_source_tag: 1.6.0
-      #     crystal_source_version: 1.6.0-1
-      #     shards_source_tag: v0.17.1
+      - build-crystal:
+        llvm_version: 14
+        crystal_source_tag: 1.6.0
+        crystal_source_version: 1.6.0-1
       - build-shards
       - build-crystalline
       - package-bundle:
           requires:
+            - build-crystal
             - build-shards
             # - build-crystalline
