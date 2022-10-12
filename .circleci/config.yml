@@ -18,6 +18,9 @@ jobs:
       crystal_source_version:
         type: string
         default: 1.6.0-1
+      shards_source_tag:
+        type: string
+        default: v0.17.1
 
     machine:
       image: ubuntu-2204:2022.07.1
@@ -92,7 +95,8 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - ~/crystal-<< parameters.crystal_soure_version >>-llvm<< paramaters.llvm_version>>-glibc
+            - ~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+
 
   build-shards:
     environment:
@@ -166,14 +170,16 @@ jobs:
            ls -lah
            cd workspace
            ls -lah
+           cd shards_artifact
+           ls -lah
 
 workflows:
   build:
     jobs:
       - build-crystal:
-        llvm_version: 14
-        crystal_source_tag: 1.6.0
-        crystal_source_version: 1.6.0-1
+          llvm_version: 14
+          crystal_source_tag: 1.6.0
+          crystal_source_version: 1.6.0-1
       - build-shards
       - build-crystalline
       - package-bundle:
