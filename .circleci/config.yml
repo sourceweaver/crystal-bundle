@@ -2,7 +2,8 @@ version: 2.1
 
 defaults:
 jobs:
-  # Build Crystal Compiler
+
+  ## Build Crystal Compiler ##
   build-crystal:
     parameters:
       llvm_version:
@@ -14,11 +15,6 @@ jobs:
       crystal_source_version:
         type: string
         default: 1.6.0-1
-
-    machine:
-      image: ubuntu-2204:2022.07.1
-    resource_class: medium
-
     environment:
       DEBIAN_FRONTEND: noninteractive
       CRYSTAL_COMPILER_TAG: 1.6.0
@@ -27,7 +23,9 @@ jobs:
       LLVM_VERSION: << parameters.llvm_version >>
       CRYSTAL_SOURCE_TAG: << parameters.crystal_source_tag >>
       CRYSTAL_SOURCE_VERSION: << parameters.crystal_source_version >>
-
+    machine:
+      image: ubuntu-2204:2022.07.1
+    resource_class: medium
     steps:
       - run:
           name: "Install System Dependencies"
@@ -88,7 +86,7 @@ jobs:
           paths:
             - crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc
 
-
+  ## Build Shards ##
   build-shards:
     parameters:
       shards_source_tag:
@@ -126,6 +124,7 @@ jobs:
           paths:
             - shards_artifact
 
+  ## Build Crystalline ##
   build-crystalline:
     parameters:
       crystalline_source_tag:
@@ -136,7 +135,6 @@ jobs:
     docker:
       - image: crystallang/crystal:1.6.0-alpine
     resource_class: large
-
     steps:
       - run:
          name:  "Install dependencies"
@@ -168,6 +166,7 @@ jobs:
           paths:
             - crystalline_artifact
 
+  ## Package everything into a tarball ##
   package-bundle:
     parameters:
       llvm_version:
