@@ -169,6 +169,9 @@ jobs:
             - crystalline_artifact
 
   package-bundle:
+    environment:
+      LLVM_VERSION: << parameters.llvm_version >>
+      CRYSTAL_SOURCE_VERSION: << parameters.crystal_source_version >>
     docker:
       - image: crystallang/crystal:1.6.0-alpine
     resource_class: large
@@ -178,12 +181,12 @@ jobs:
       - run:
          name: "Debug"
          command: |
-           cd /tmp/
-           ls -lah
-           cd workspace
-           ls -lah
-           cd shards_artifact
-           ls -lah
+           cd /tmp/workspace
+           mv shards_artifact/shards ./crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin
+           mv crystalline_artifact/crystalline ./crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin
+           tar -zcvf crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc.tar.gz crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+      - store_artifacts:
+          path: /tmp/workspace/crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc.tar.gz
 
 workflows:
   build:
@@ -197,6 +200,8 @@ workflows:
       - build-crystalline:
           crystalline_source_tag: v0.7.0
       - package-bundle:
+          llvm_version: 14
+          crystal_source_version: 1.6.0-1
           requires:
             - build-crystal
             - build-shards
