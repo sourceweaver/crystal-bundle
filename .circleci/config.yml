@@ -106,6 +106,9 @@ jobs:
     resource_class: large
     steps:
       - run:
+         name:  "Install dependencies"
+         command: apk add --update --no-cache --force-overwrite llvm11-dev llvm11-static g++ make asciidoctor yaml yaml-dev
+      - run:
          name: "Fetch Shards Source Code"
          working_directory: ~/
          command: |
