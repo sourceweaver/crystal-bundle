@@ -129,6 +129,9 @@ jobs:
       - image: crystallang/crystal:1.6.0-alpine
     resource_class: large
     steps:
+      - run:
+         name:  "Install dependencies"
+         command: apk add --update --no-cache --force-overwrite llvm11-dev llvm11-static g++ make
       # - run:
       #     name: "Install dependencies"
       #     command: |
