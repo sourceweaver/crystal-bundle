@@ -169,6 +169,13 @@ jobs:
             - crystalline_artifact
 
   package-bundle:
+    parameters:
+      llvm_version:
+        type: integer
+        default: 14
+      crystal_source_version:
+        type: string
+        default: 1.6.0-1
     environment:
       LLVM_VERSION: << parameters.llvm_version >>
       CRYSTAL_SOURCE_VERSION: << parameters.crystal_source_version >>
