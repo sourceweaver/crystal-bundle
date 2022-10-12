@@ -120,4 +120,4 @@ workflows:
       #     crystal_source_tag: 1.6.0
       #     crystal_source_version: 1.6.0-1
       #     shards_source_tag: v0.17.1
-      - build-shards:
+      - build-shards
