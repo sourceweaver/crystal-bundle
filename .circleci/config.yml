@@ -1,12 +1,8 @@
 version: 2.1
 
 defaults:
-  environment: &env
-    CRYSTAL_COMPILER_TAG: 1.6.0
-    CRYSTAL_COMPILER_VERSION: 1.6.0-1
-    GC_VERSION: v8.2.0
-
 jobs:
+  # Build Crystal Compiler
   build-crystal:
     parameters:
       llvm_version:
@@ -18,9 +14,6 @@ jobs:
       crystal_source_version:
         type: string
         default: 1.6.0-1
-      shards_source_tag:
-        type: string
-        default: v0.17.1
 
     machine:
       image: ubuntu-2204:2022.07.1
@@ -28,13 +21,12 @@ jobs:
 
     environment:
       DEBIAN_FRONTEND: noninteractive
-      CRYSTAL_COMPILER_TAG: 1.5.0
-      CRYSTAL_COMPILER_VERSION: 1.5.0-1
+      CRYSTAL_COMPILER_TAG: 1.6.0
+      CRYSTAL_COMPILER_VERSION: 1.6.0-1
       GC_VERSION: v8.2.0
       LLVM_VERSION: << parameters.llvm_version >>
       CRYSTAL_SOURCE_TAG: << parameters.crystal_source_tag >>
       CRYSTAL_SOURCE_VERSION: << parameters.crystal_source_version >>
-      SHARDS_SOURCE_TAG: << parameters.shards_source_tag >>
 
     steps:
       - run:
@@ -99,8 +91,12 @@ jobs:
 
 
   build-shards:
+    parameters:
+      shards_source_tag:
+        type: string
+        default: v0.17.1
     environment:
-      <<: *env
+      SHARDS_SOURCE_TAG: << parameters.shards_source_tag >>
     docker:
       - image: crystallang/crystal:1.6.0-alpine
     resource_class: large
@@ -132,11 +128,16 @@ jobs:
             - shards_artifact
 
   build-crystalline:
+    parameters:
+      crystalline_source_tag:
+        type: string
+        default: v0.7.0
     environment:
-      <<: *env
+      CRYSTALLINE_SOURCE_TAG: << parameters.crystalline_source_tag >>
     docker:
       - image: crystallang/crystal:1.6.0-alpine
     resource_class: large
+
     steps:
       - run:
          name:  "Install dependencies"
@@ -147,7 +148,7 @@ jobs:
          command: |
            git clone https://github.com/elbywan/crystalline
            cd crystalline
-           git checkout v0.7.0
+           git checkout $CRYSTALLINE_SOURCE_TAG
       - run:
          name: "Build Crystalline"
          working_directory: ~/crystalline
@@ -158,9 +159,6 @@ jobs:
            CRYSTAL_PATH=crystal/src:lib shards build crystalline --no-debug --progress --stats --production --static \
              --release -Dpreview_mt --ignore-crystal-version
            ls -lah
-           # mkdir build
-           # shards install
-           # crystal build ./src/crystalline.cr  -o ./build/crystalline --release --no-debug --progress -Dpreview_mt
       - store_artifacts:
           path: ~/crystalline/bin/crystalline
 
@@ -188,10 +186,12 @@ workflows:
           llvm_version: 14
           crystal_source_tag: 1.6.0
           crystal_source_version: 1.6.0-1
-      - build-shards
-      - build-crystalline
+      - build-shards:
+          shards_source_tag: v0.17.1
+      - build-crystalline:
+          crystalline_source_tag: v0.7.0
       - package-bundle:
           requires:
             - build-crystal
             - build-shards
-            # - build-crystalline
+            - build-crystalline
