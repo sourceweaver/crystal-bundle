@@ -79,16 +79,25 @@ jobs:
           working_directory: ~/crystal
           no_output_timeout: 30m
           command: make -j$(nproc) CRYSTAL=~/crystal-$CRYSTAL_COMPILER_VERSION/bin/crystal LLVM_CONFIG=llvm-config-$LLVM_VERSION release=true static=true
-#       - run:
-#          name: "Test Crystal"
-#          working_directory: ~/crystal
-#          command: make std_spec compiler_spec
       - run:
          name: "Install Crystal"
          working_directory: ~/crystal
          command: |
            make install PREFIX='' DESTDIR=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
            echo 'export PATH=~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin:$PATH' >> "$BASH_ENV"
+      - run:
+         name: "Package Crystal"
+         working_directory: ~/
+         command: |
+           tar -zcvf crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc.tar.gz crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+      - store_artifacts:
+         path: ~/crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc.tar.gz
+
+  build-shards:
+    docker:
+      - image: crystallang/crystal:1.6.0-alpine
+    resource_class: large
+    steps:
       - run:
          name: "Fetch Shards Source Code"
          working_directory: ~/
@@ -100,26 +109,15 @@ jobs:
          name: "Build Shards"
          working_directory: ~/shards
          command: |
-          make bin/shards release=1 static=1
-      - run:
-         name: "Install Shards"
-         working_directory: ~/shards
-         command: |
-           make install PREFIX='' DESTDIR=".build/"
-           mv .build/bin/shards ~/crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc/bin
-      - run:
-         name: "Package Crystal"
-         working_directory: ~/
-         command: |
-           tar -zcvf crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc.tar.gz crystal-$CRYSTAL_SOURCE_VERSION-llvm$LLVM_VERSION-glibc
+           make bin/shards release=1 static=1
       - store_artifacts:
-         path: ~/crystal-<< parameters.crystal_source_version >>-llvm<< parameters.llvm_version >>-glibc.tar.gz
+          path: ~/shards/.build/bin/shards
 workflows:
   build:
     jobs:
-      - build-crystal:
-          llvm_version: 14
-          crystal_source_tag: 1.6.0
-          crystal_source_version: 1.6.0-1
-          shards_source_tag: v0.17.1
-
+      # - build-crystal:
+      #     llvm_version: 14
+      #     crystal_source_tag: 1.6.0
+      #     crystal_source_version: 1.6.0-1
+      #     shards_source_tag: v0.17.1
+      - build-shards:
