@@ -126,9 +126,9 @@ jobs:
             mkdir shards_artifact
             mv shards/.build/bin/shards shards_artifact
       - persist_to_workspace:
-          root: workspace
+          root: ~/
           paths:
-            - /home/circleci/shards_artifact
+            - shards_artifact
 
   build-crystalline:
     environment:
