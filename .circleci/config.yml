@@ -150,6 +150,7 @@ jobs:
       - run:
          name: "Build Crystalline"
          working_directory: ~/crystalline
+         no_output_timeout: 30m
          command: |
            mkdir build
            shards install
