@@ -120,11 +120,11 @@ jobs:
          command: |
            make bin/shards release=1 static=1
       - run:
-        name: "Copy Shards Artifact"
-        working_directory: ~/
-        command: |
-          mkdir shards_artifact
-          mv shards/.build/bin/shards shards_artifact
+          name: "Copy Shards Artifact"
+          working_directory: ~/
+          command: |
+            mkdir shards_artifact
+            mv shards/.build/bin/shards shards_artifact
       - persist_to_workspace:
           root: workspace
           paths:
