@@ -3,10 +3,14 @@
 
 A bundle of statically linked builds of:
 
-1. [Crystal Compiler](https://github.com/crystal-lang/crystal) with `glibc`.
-2. [Shards](https://github.com/crystal-lang/shards).
-3. [Crystalline](https://github.com/elbywan/crystalline).
++ [Crystal compiler](https://github.com/crystal-lang/crystal) compiled using`glibc` and `LLVM14`
++ [Shards](https://github.com/crystal-lang/shards)
++ [Crystalline](https://github.com/elbywan/crystalline)
 
-## Usage
+## Usage 
 
-You can download the latest tarball from the [releases](https://github.com/sourceweaver/crystal-bundle/releases) page. The recipe of the builds are defined in `circleci/config.yml` and the build service I use is CircleCI.
+You can download the latest tarball from the [releases](https://github.com/sourceweaver/crystal-bundle/releases) page. The recipe of the builds are defined in `circleci/config.yml` and the build service used is CircleCI.
+
+## Todo
+
+- [ ] Add `musl` builds
